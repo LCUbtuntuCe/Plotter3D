@@ -161,9 +161,9 @@ FramePlotter::FramePlotter(wxFrame *parent)
   checkbox_lighting->Bind(wxEVT_CHECKBOX, &FramePlotter::on_lighting, this);
   combobox_projection->Bind(wxEVT_COMBOBOX, &FramePlotter::on_projection, this);
   
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Resolution:"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection:"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Resolution"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
   staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
   staticbox_sizer->Add(textctrl_resolution, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
   staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
