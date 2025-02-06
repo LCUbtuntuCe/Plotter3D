@@ -7,11 +7,14 @@
 #include <wx/wx.h>
 #include <wx/glcanvas.h>
 
+#include "../include/properties.hpp"
+
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"
 
 class CanvasGL : public wxGLCanvas {
+  Properties& props;
   wxGLContext* m_context;
   GLuint shader_program;
   GLuint VBO, VAO, VAO_AXIS, VBO_AXIS, VAO1, VBO1, EBO1;
@@ -32,12 +35,11 @@ class CanvasGL : public wxGLCanvas {
   bool left_is_down = false;
   bool right_is_down = false;
 public:
-  CanvasGL(wxPanel* parent, int* args);
+  CanvasGL(wxPanel* parent, int* args, Properties& properties);
   virtual ~CanvasGL();
   void init_gl(void);
   void on_size(wxSizeEvent& event);
   void render(wxPaintEvent& event);
-  void test(wxMouseEvent& event);
   void on_mouse_motion(wxMouseEvent& event);
   void on_mouse_left_down(wxMouseEvent& event);
   void on_mouse_left_up(wxMouseEvent& event);

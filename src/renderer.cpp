@@ -6,8 +6,9 @@
 #include <wx/event.h>
 
 
-CanvasGL::CanvasGL(wxPanel* parent, int* args)
-  : wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE) {
+CanvasGL::CanvasGL(wxPanel* parent, int* args, Properties& properties)
+  : wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE),
+    props(properties) {
   m_context = new wxGLContext(this);
   SetCurrent(*m_context);
   Bind(wxEVT_PAINT,      &CanvasGL::render, this);
@@ -328,6 +329,8 @@ void main() {
 
 void CanvasGL::render(wxPaintEvent& event) {
 
+  std::cout << "from outer class" << props.show_axes << std::endl;
+
   if (!gl_has_been_init) {
     init_gl();
     gl_has_been_init = true;
@@ -364,8 +367,10 @@ void CanvasGL::render(wxPaintEvent& event) {
   // glBindVertexArray(VAO);
   // glDrawArrays(GL_TRIANGLES, 0, 36);
 
-  glBindVertexArray(VAO_AXIS);
-  glDrawArrays(GL_LINES, 0, 6);
+  if (props.show_axes) {
+    glBindVertexArray(VAO_AXIS);
+    glDrawArrays(GL_LINES, 0, 6);
+  }
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glBindVertexArray(VAO1);

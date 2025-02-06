@@ -1,4 +1,5 @@
 #include "../include/renderer.hpp"
+#include "../include/properties.hpp"
 #include <wx/wx.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -31,12 +32,72 @@ public:
   }
 };
 
-/* ---------------------- main frame ---------------------- */
+/* ------------------- main frame class ------------------- */
 
 class FramePlotter : public wxFrame {
+  Properties props = {
+    .grid_size = 100,
+    .resolution = 0.1,
+    .perspective = false,
+    .show_axes = true,
+    .show_mesh = true,
+    .lighting = true
+  };
+  CanvasGL* canvas_gl;
+  wxTextCtrl* textctrl_gridsize;
+  wxTextCtrl* textctrl_resolution;
+  wxCheckBox* checkbox_axes;
+  wxCheckBox* checkbox_mesh;
+  wxCheckBox* checkbox_lighting;
+  wxComboBox* combobox_projection;
 public:
   FramePlotter(wxFrame* parent);
+  void on_gridsize(wxCommandEvent& event);
+  void on_resolution(wxCommandEvent& event);
+  void on_projection(wxCommandEvent& event);
+  void on_axes(wxCommandEvent& event);
+  void on_mesh(wxCommandEvent& event);
+  void on_lighting(wxCommandEvent& event);
 };
+
+/* ------------------------ events ------------------------ */
+
+void FramePlotter::on_gridsize(wxCommandEvent& event) {
+  long value;
+  textctrl_gridsize->GetValue().ToLong(&value);
+  props.grid_size = (int)value;
+  std::cout << "gridize" << std::endl;
+  canvas_gl->Refresh();
+}
+void FramePlotter::on_resolution(wxCommandEvent& event) {
+  double value;
+  textctrl_gridsize->GetValue().ToDouble(&value);
+  props.resolution = (float)value;
+  std::cout << "resolution" << std::endl;
+  canvas_gl->Refresh();
+}
+void FramePlotter::on_projection(wxCommandEvent& event) {
+  if (combobox_projection->GetValue() == wxString("Perspective")) {
+    props.perspective = true;
+  } else {
+    props.perspective = false;
+  }
+  canvas_gl->Refresh();
+}
+void FramePlotter::on_axes(wxCommandEvent& event) {
+  props.show_axes = checkbox_axes->GetValue();
+  canvas_gl->Refresh();
+}
+void FramePlotter::on_mesh(wxCommandEvent& event) {
+  props.show_mesh = checkbox_mesh->GetValue();
+  canvas_gl->Refresh();
+}
+void FramePlotter::on_lighting(wxCommandEvent& event) {
+  props.lighting = checkbox_lighting->GetValue();
+  canvas_gl->Refresh();
+}
+
+/* ---------------- main frame constructor ---------------- */
 
 FramePlotter::FramePlotter(wxFrame *parent)
   : wxFrame(parent, wxID_ANY, "Plotter3D") {
@@ -58,7 +119,7 @@ FramePlotter::FramePlotter(wxFrame *parent)
 		WX_GL_DOUBLEBUFFER,
 		WX_GL_DEPTH_SIZE, 16,
 		0};
-  CanvasGL* canvas_gl = new CanvasGL(panel_main, args);
+  canvas_gl = new CanvasGL(panel_main, args, props);
 
   /* ------------- right panel (configuration) ------------- */
 
@@ -79,18 +140,27 @@ FramePlotter::FramePlotter(wxFrame *parent)
 
   wxString combobox_projection_choices[2] = {"Perspective", "Orthographic"};
 
-  wxTextCtrl* textctrl_gridsize   = new wxTextCtrl(staticbox_properties, wxID_ANY, "50");
-  wxTextCtrl* textctrl_resolution = new wxTextCtrl(staticbox_properties, wxID_ANY, "0.1");
-  wxCheckBox* checkbox_axes       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show axes:");
-  wxCheckBox* checkbox_mesh       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show mesh:");
-  wxCheckBox* checkbox_lighting   = new wxCheckBox(staticbox_properties, wxID_ANY, "Lighting:");
-  wxComboBox* combobox_projection = new wxComboBox(staticbox_properties, wxID_ANY, "Perspective",
-						   wxDefaultPosition, wxDefaultSize, 2,
-						   combobox_projection_choices, wxCB_READONLY);
+  textctrl_gridsize   = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
+  textctrl_resolution = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
+  checkbox_axes       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show axes:");
+  checkbox_mesh       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show mesh:");
+  checkbox_lighting   = new wxCheckBox(staticbox_properties, wxID_ANY, "Lighting:");
+  combobox_projection = new wxComboBox(staticbox_properties, wxID_ANY, "Perspective",
+				       wxDefaultPosition, wxDefaultSize, 2,
+				       combobox_projection_choices, wxCB_READONLY);
 
-  checkbox_axes->SetValue(true);
-  checkbox_mesh->SetValue(true);
-  checkbox_lighting->SetValue(true);
+  textctrl_gridsize->SetValue(wxString::Format(wxT("%d"), props.grid_size));
+  textctrl_resolution->SetValue(wxString::Format(wxT("%.2f"), props.resolution));
+  checkbox_axes->SetValue(props.show_axes);
+  checkbox_mesh->SetValue(props.show_mesh);
+  checkbox_lighting->SetValue(props.lighting);
+
+  textctrl_gridsize->Bind(wxEVT_TEXT, &FramePlotter::on_gridsize, this);
+  textctrl_resolution->Bind(wxEVT_TEXT, &FramePlotter::on_resolution, this);
+  checkbox_axes->Bind(wxEVT_CHECKBOX, &FramePlotter::on_axes, this);
+  checkbox_mesh->Bind(wxEVT_CHECKBOX, &FramePlotter::on_mesh, this);
+  checkbox_lighting->Bind(wxEVT_CHECKBOX, &FramePlotter::on_lighting, this);
+  combobox_projection->Bind(wxEVT_COMBOBOX, &FramePlotter::on_projection, this);
   
   staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
   staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Resolution:"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
