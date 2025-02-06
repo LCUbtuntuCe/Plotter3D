@@ -1,9 +1,12 @@
+// modified parser from C++: Complete Reference
+
 #include "../include/parser.hpp"
 
-parser::parser() {
-  expr_ptr = NULL;
-}
-
+parser::parser()
+  : expr_ptr(NULL),
+    x(0.0),
+    y(0.0) { }
+    
 double parser::eval_expr(char* expr) {
   double result;
   expr_ptr = expr;
@@ -16,6 +19,11 @@ double parser::eval_expr(char* expr) {
   if (*token)
     serror(0);
   return result;
+}
+
+void parser::set_xy(double x_val, double y_val) {
+  x = x_val;
+  y = y_val;
 }
 
 void parser::eval_AS(double& result) {
@@ -98,6 +106,15 @@ void parser::eval_P(double& result) {
 
 void parser::atom(double &result) {
   switch (token_type) {
+  case VARIABLE:
+    if (*token == 'x')
+      result = x;
+    else if (*token == 'y')
+      result = y;
+    else
+      serror(3);
+    get_token();
+    return;
   case NUMBER:
     result = atof(token);
     get_token();
@@ -143,21 +160,24 @@ bool parser::isdelim(char c) {
 void parser::serror(int error) {
   static const char* e[] = {
     "SyntaxError",
-    "Unbalanced Parentheses",
-    "No expression"
+    "UnbalancedParentheses",
+    "NoExpression",
+    "InvalidVariable"
   };
   std::cout << e[error] << std::endl;
 }
 
-int main() {
-  char expstr[80];
-  parser ob;
-  while (true) {
-    std::cout << "Expression: ";
-    std::cin.getline(expstr, 79);
-    if (*expstr == '.')
-      break;
-    std::cout << "Result: " << ob.eval_expr(expstr) << std::endl;
-  }
-  return 0;
-}
+// int main() {
+//   char expstr[80];
+//   parser ob;
+//   double c = 0.0;
+//   for (;;c++) {
+//     ob.set_xy(c, c+1);
+//     std::cout << "Expression: ";
+//     std::cin.getline(expstr, 79);
+//     if (*expstr == '.')
+//       break;
+//     std::cout << "Result: " << ob.eval_expr(expstr) << std::endl;
+//   }
+//   return 0;
+// }

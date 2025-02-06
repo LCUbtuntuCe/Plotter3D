@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 
+
 enum types {
   DELIMITER = 1,
   NUMBER,
@@ -17,7 +18,10 @@ class parser {
 public:
   parser();
   double eval_expr(char* exp);
+  void set_xy(double x_val, double y_val);
 private:
+  double x;
+  double y;
   char* expr_ptr;
   char token[100];
   char token_type;

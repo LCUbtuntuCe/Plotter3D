@@ -1,6 +1,7 @@
 #ifndef H_PROPERTIES
 #define H_PROPERTIES
 
+
 struct Properties {
   int grid_size;
   float resolution;
@@ -9,5 +10,6 @@ struct Properties {
   bool show_mesh;
   bool lighting;
 };
+
 
 #endif
