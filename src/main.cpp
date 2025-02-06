@@ -78,8 +78,8 @@ FramePlotter::FramePlotter(wxFrame *parent)
 
   /* -------------- add left and right to main -------------- */
 
-  sizer_main->Add(canvas_gl, 1, wxEXPAND);
-  sizer_main->Add(panel_right, 0, wxEXPAND);
+  sizer_main->Add(canvas_gl, 3, wxEXPAND);
+  sizer_main->Add(panel_right, 1, wxEXPAND);
 }
 
 /* ------------------------ wx app ------------------------ */
