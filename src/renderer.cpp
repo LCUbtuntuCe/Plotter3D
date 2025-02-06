@@ -2,6 +2,7 @@
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"
+#include "../include/parser.hpp"
 #include <GL/gl.h>
 #include <wx/event.h>
 
@@ -127,34 +128,67 @@ void CanvasGL::on_mouse_right_up(wxMouseEvent& event) {
   }
 }
 
-const int resolution = 50;
-const float size = 5.0f;
-void generate_paraboloid(std::vector<float>& vertices, std::vector<unsigned int>& indices) {
-    for (int i = 0; i <= resolution; ++i) {
-        for (int j = 0; j <= resolution; ++j) {
-            float x = size * ((float)i / resolution - 0.5f);
-            float y = size * ((float)j / resolution - 0.5f);
-            float z = x * x + y * y;
-            vertices.push_back(x);
-	    vertices.push_back(z);
-            vertices.push_back(y);
-        }
+void CanvasGL::add_surface(const std::string& function) {
+  parser p;
+  std::vector<float> vert;
+  std::vector<unsigned int> ind;
+  // Reserve memory for the vectors to avoid multiple reallocations
+  int estimatedSize = (props.grid_size + 1) * (props.grid_size + 1) * 3;
+  vert.reserve(estimatedSize);
+  ind.reserve(estimatedSize / 3);
+  // convert function string to char*
+  char* expression = new char[function.size() + 1];
+  std::strcpy(expression, function.c_str());
+  // generate vertices
+  for (int i=(int)-props.grid_size/2; i<=props.grid_size/2; i++) {
+    for (int j=(int)-props.grid_size/2; j<= props.grid_size/2; j++) {
+      p.set_xy((double)i, (double)j);
+      float x = ((float)i / props.resolution - 0.5f);
+      float y = ((float)j / props.resolution - 0.5f);
+      double z = p.eval_expr(expression);
+      vert.push_back(x);
+      vert.push_back(z);
+      vert.push_back(y);
     }
-    for (int i = 0; i < resolution; ++i) {
-        for (int j = 0; j < resolution; ++j) {
-            int row1 = i * (resolution + 1);
-            int row2 = (i + 1) * (resolution + 1);
-
-            indices.push_back(row1 + j);
-            indices.push_back(row2 + j);
-            indices.push_back(row1 + j + 1);
-
-            indices.push_back(row1 + j + 1);
-            indices.push_back(row2 + j);
-            indices.push_back(row2 + j + 1);
-        }
+  }
+  // generate indices
+  for (int i=0; i<props.resolution; i++) {
+    for (int j=0; j<props.resolution; j++) {
+      int row1 = i * (props.resolution + 1);
+      int row2 = (i + 1) * (props.resolution + 1);
+      indices.push_back(row1 + j);
+      indices.push_back(row2 + j);
+      indices.push_back(row1 + j + 1);
+      indices.push_back(row1 + j + 1);
+      indices.push_back(row2 + j);
+      indices.push_back(row2 + j + 1);
     }
+  }
+
+  GLuint vao, vbo, ebo;
+  // create array and buffers
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vbo);
+  glGenBuffers(1, &ebo);
+  // bind vao
+  glBindVertexArray(vao);
+  // pass data to vbo buffer
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, vert.size() * sizeof(float), vert.data(), GL_STATIC_DRAW);
+  // pass data to ebo buffer
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size() * sizeof(unsigned int), ind.data(), GL_STATIC_DRAW);
+  // set location and data format 
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  // unbind
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  // add to vector
+  Surface3D surf = {function, true, vao, (int)vert.size()/3};
+  surfaces.push_back(surf);
 }
+
 
 void CanvasGL::init_gl(void) {
 
@@ -186,7 +220,7 @@ void main() {
 in vec4 input_color;
 out vec4 FragColor;
 void main() {
-  //FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  // FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
   FragColor = input_color;
 }
 )";
@@ -234,13 +268,14 @@ void main() {
 
   glBindVertexArray(VAO_AXIS);
   glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
+  float s = props.grid_size / props.resolution - 0.5f;
   float axis[] = {
-    5.0f, 0.0f, 0.0f,
-    -5.0f, 0.0f, 0.0f,
-    0.0f, 5.0f, 0.0f,
-    0.0f, -5.0f, 0.0f,
-    0.0f, 0.0f, 5.0f,
-    0.0f, 0.0f, -5.0f
+    s, 0.0f, 0.0f,
+    -s, 0.0f, 0.0f,
+    0.0f, s, 0.0f,
+    0.0f, -s, 0.0f,
+    0.0f, 0.0f, s,
+    0.0f, 0.0f, -s
   };
   glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
 
@@ -250,28 +285,13 @@ void main() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  /* ------------------------- test ------------------------- */
-
-  generate_paraboloid(vertices1, indices);
-  glGenVertexArrays(1, &VAO1);
-  glGenBuffers(1, &VBO1);
-  glGenBuffers(1, &EBO1);
-  glBindVertexArray(VAO1);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-  glBufferData(GL_ARRAY_BUFFER, vertices1.size() * sizeof(float), vertices1.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-
   /* ------------------------- vars ------------------------- */
 
   glLineWidth(2);
   glPointSize(10);
   glEnable(GL_DEPTH_TEST);
+
+  add_surface("x * y");
 
 }
 
@@ -302,13 +322,13 @@ void CanvasGL::render(wxPaintEvent& event) {
 
   glm::mat4 projection;
   if (props.perspective) {
-    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 300.0f);
+    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 5000.0f);
   } else {
     float left = -ortho_size * aspectRatio;
     float right = ortho_size * aspectRatio;
     float bottom = -ortho_size;
     float top = ortho_size;
-    projection = glm::ortho<float>(left, right, bottom, top, 0.1f, 300.0f);
+    projection = glm::ortho<float>(left, right, bottom, top, 0.1f, 5000.0f);
   }
 				    
   GLuint locProjection = glGetUniformLocation(shader_program, "projection");
@@ -324,9 +344,17 @@ void CanvasGL::render(wxPaintEvent& event) {
     glDrawArrays(GL_LINES, 0, 6);
   }
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glBindVertexArray(VAO1);
-  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+  for (Surface3D i : surfaces) {
+    glBindVertexArray(i.vao);
+    glDrawArrays(GL_POINTS, 0, i.ind_size);
+    // glDrawElements(GL_POINTS, i.ind_size, GL_UNSIGNED_INT, 0);
+  }
+
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glBindVertexArray(VAO1);
+  // glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+  
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // glDrawArrays(GL_TRIANGLES, 0, 36);
