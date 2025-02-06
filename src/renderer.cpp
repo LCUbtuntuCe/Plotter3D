@@ -60,33 +60,39 @@ void CanvasGL::on_mouse_motion(wxMouseEvent& event) {
     camera_pos = glm::vec3(x, y, z);
     
   } else if (right_is_down) {
-    
-    // calculate translation value
-    float tval = (y_current - y_last) * scale_translation;
 
-    // calculate direction vector from the camera position to the origin
-    glm::vec3 direction_vector = glm::vec3(0.0f, 0.0f, 0.0f) - camera_pos;
+    if (props.perspective) {
+      
+      // calculate translation value
+      float tval = (y_current - y_last) * scale_translation;
 
-    // calculate distance between the camera and the origin
-    float distance = glm::length(direction_vector);
+      // calculate direction vector from the camera position to the origin
+      glm::vec3 direction_vector = glm::vec3(0.0f, 0.0f, 0.0f) - camera_pos;
 
-    // dont get too close to the origin
-    if (distance < 2.0f && tval > 0) {
-      event.Skip();
-      return;
+      // calculate distance between the camera and the origin
+      float distance = glm::length(direction_vector);
+
+      // dont get too close to the origin
+      if (distance < 2.0f && tval > 0) {
+	event.Skip();
+	return;
+      }
+
+      // update radius
+      radius = distance;
+
+      // normalize direction vector to get the unit direction
+      glm::vec3 unit_direction = glm::normalize(direction_vector);
+
+      // calculate translation vector
+      glm::vec3 translation_vector = unit_direction * tval;
+
+      // translate camera position
+      camera_pos += translation_vector;
+    } else {
+      float offset = -(y_current - y_last) * scale_translation;
+      ortho_size += offset;
     }
-
-    // update radius
-    radius = distance;
-
-    // normalize direction vector to get the unit direction
-    glm::vec3 unit_direction = glm::normalize(direction_vector);
-
-    // calculate translation vector
-    glm::vec3 translation_vector = unit_direction * tval;
-
-    // translate camera position
-    camera_pos += translation_vector;
   }
 
   Refresh();
@@ -180,8 +186,8 @@ void main() {
 in vec4 input_color;
 out vec4 FragColor;
 void main() {
-  FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-  //FragColor = input_color;
+  //FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  FragColor = input_color;
 }
 )";
 
@@ -329,8 +335,6 @@ void main() {
 
 void CanvasGL::render(wxPaintEvent& event) {
 
-  std::cout << "from outer class" << props.show_axes << std::endl;
-
   if (!gl_has_been_init) {
     init_gl();
     gl_has_been_init = true;
@@ -344,8 +348,6 @@ void CanvasGL::render(wxPaintEvent& event) {
 
   glUseProgram(shader_program);
 
-  
-
   glm::mat4 view = glm::mat4(1.0f);
   view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), camera_up);
   GLuint locView = glGetUniformLocation(shader_program, "view");
@@ -354,7 +356,18 @@ void CanvasGL::render(wxPaintEvent& event) {
   int width, height;
   GetClientSize(&width, &height);
   float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 300.0f);
+
+  glm::mat4 projection;
+  if (props.perspective) {
+    projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 300.0f);
+  } else {
+    float left = -ortho_size * aspectRatio;
+    float right = ortho_size * aspectRatio;
+    float bottom = -ortho_size;
+    float top = ortho_size;
+    projection = glm::ortho<float>(left, right, bottom, top, 0.1f, 300.0f);
+  }
+				    
   GLuint locProjection = glGetUniformLocation(shader_program, "projection");
   glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection));
 

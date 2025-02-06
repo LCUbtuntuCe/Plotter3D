@@ -38,7 +38,7 @@ class FramePlotter : public wxFrame {
   Properties props = {
     .grid_size = 100,
     .resolution = 0.1,
-    .perspective = false,
+    .perspective = true,
     .show_axes = true,
     .show_mesh = true,
     .lighting = true
@@ -124,7 +124,6 @@ FramePlotter::FramePlotter(wxFrame *parent)
   /* ------------- right panel (configuration) ------------- */
 
   wxPanel* panel_right = new wxPanel(panel_main);
-  panel_right->SetBackgroundColour(wxColour(255, 0, 0));
   wxBoxSizer* sizer_right = new wxBoxSizer(wxVERTICAL);
   panel_right->SetSizer(sizer_right);
 

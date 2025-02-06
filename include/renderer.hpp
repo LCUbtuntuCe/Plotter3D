@@ -26,6 +26,7 @@ class CanvasGL : public wxGLCanvas {
   float scale_translation = 0.04f;
   float scale_rotation = 0.01f;
   float fov = 90.0f;
+  float ortho_size = 5.0f;
   glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, -radius);
   glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
