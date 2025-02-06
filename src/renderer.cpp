@@ -120,6 +120,35 @@ void CanvasGL::on_mouse_right_up(wxMouseEvent& event) {
   }
 }
 
+const int resolution = 50;
+const float size = 5.0f;
+void generate_paraboloid(std::vector<float>& vertices, std::vector<unsigned int>& indices) {
+    for (int i = 0; i <= resolution; ++i) {
+        for (int j = 0; j <= resolution; ++j) {
+            float x = size * ((float)i / resolution - 0.5f);
+            float y = size * ((float)j / resolution - 0.5f);
+            float z = x * x + y * y;
+            vertices.push_back(x);
+	    vertices.push_back(z);
+            vertices.push_back(y);
+        }
+    }
+    for (int i = 0; i < resolution; ++i) {
+        for (int j = 0; j < resolution; ++j) {
+            int row1 = i * (resolution + 1);
+            int row2 = (i + 1) * (resolution + 1);
+
+            indices.push_back(row1 + j);
+            indices.push_back(row2 + j);
+            indices.push_back(row1 + j + 1);
+
+            indices.push_back(row1 + j + 1);
+            indices.push_back(row2 + j);
+            indices.push_back(row2 + j + 1);
+        }
+    }
+}
+
 void CanvasGL::init_gl(void) {
 
   SetCurrent(*m_context);
@@ -150,8 +179,8 @@ void main() {
 in vec4 input_color;
 out vec4 FragColor;
 void main() {
-  //FragColor = vec4(1.0f, 1.0f, 0.1f, 1.0f);
-  FragColor = input_color;
+  FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  //FragColor = input_color;
 }
 )";
 
@@ -236,7 +265,6 @@ void main() {
   };
   
   glGenVertexArrays(1, &VAO);
-  
   glGenBuffers(1, &VBO);
 
   glBindVertexArray(VAO);
@@ -249,10 +277,52 @@ void main() {
   glBindBuffer(GL_ARRAY_BUFFER, 0); 
   glBindVertexArray(0);
 
-  glLineWidth(7);
-  glPointSize(5);
-  glEnable(GL_DEPTH_TEST);
+  /* ------------------------- axis ------------------------- */
+
+  glGenVertexArrays(1, &VAO_AXIS);
+  glGenBuffers(1, &VBO_AXIS);
+
+  glBindVertexArray(VAO_AXIS);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
+  float axis[] = {
+    5.0f, 0.0f, 0.0f,
+    -5.0f, 0.0f, 0.0f,
+    0.0f, 5.0f, 0.0f,
+    0.0f, -5.0f, 0.0f,
+    0.0f, 0.0f, 5.0f,
+    0.0f, 0.0f, -5.0f
+  };
+  glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+
+  /* ------------------------- test ------------------------- */
+
+  generate_paraboloid(vertices1, indices);
+  glGenVertexArrays(1, &VAO1);
+  glGenBuffers(1, &VBO1);
+  glGenBuffers(1, &EBO1);
+  glBindVertexArray(VAO1);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+  glBufferData(GL_ARRAY_BUFFER, vertices1.size() * sizeof(float), vertices1.data(), GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
   
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+
+  /* ------------------------- vars ------------------------- */
+
+  glLineWidth(2);
+  glPointSize(10);
+  glEnable(GL_DEPTH_TEST);
+
 }
 
 
@@ -266,12 +336,12 @@ void CanvasGL::render(wxPaintEvent& event) {
   SetCurrent(*m_context);
   wxPaintDC dc(this);
 
-  glClearColor(0.5f, 0.6f, 0.2f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
   glUseProgram(shader_program);
 
-  glBindVertexArray(VAO);
+  
 
   glm::mat4 view = glm::mat4(1.0f);
   view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), camera_up);
@@ -290,8 +360,22 @@ void CanvasGL::render(wxPaintEvent& event) {
   GLuint locModel = glGetUniformLocation(shader_program, "model");
   glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
 
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // glBindVertexArray(VAO);
+  // glDrawArrays(GL_TRIANGLES, 0, 36);
+
+  glBindVertexArray(VAO_AXIS);
+  glDrawArrays(GL_LINES, 0, 6);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glBindVertexArray(VAO1);
+  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  // glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+  
 
   SwapBuffers();
 

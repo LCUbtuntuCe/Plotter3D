@@ -14,7 +14,9 @@
 class CanvasGL : public wxGLCanvas {
   wxGLContext* m_context;
   GLuint shader_program;
-  GLuint VBO, VAO;
+  GLuint VBO, VAO, VAO_AXIS, VBO_AXIS, VAO1, VBO1, EBO1;
+  std::vector<float> vertices1;
+  std::vector<unsigned int> indices;
   float radius = 5.0f;
   float theta = glm::radians(-90.0f);
   float phi = glm::radians(0.0f);
