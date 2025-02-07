@@ -4,11 +4,11 @@
 
 struct Properties {
   int grid_size;
-  float resolution;
+  float divisions;
   bool perspective;
   bool show_axes;
   bool show_mesh;
-  bool lighting;
+  // bool lighting;
 };
 
 

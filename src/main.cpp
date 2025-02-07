@@ -36,28 +36,28 @@ public:
 
 class FramePlotter : public wxFrame {
   Properties props = {
-    .grid_size = 100,
-    .resolution = 0.1,
+    .grid_size = 50,
+    .divisions = 400,
     .perspective = true,
     .show_axes = true,
     .show_mesh = true,
-    .lighting = true
+    // .lighting = true
   };
   CanvasGL* canvas_gl;
   wxTextCtrl* textctrl_gridsize;
-  wxTextCtrl* textctrl_resolution;
+  wxTextCtrl* textctrl_divisions;
   wxCheckBox* checkbox_axes;
   wxCheckBox* checkbox_mesh;
-  wxCheckBox* checkbox_lighting;
+  // wxCheckBox* checkbox_lighting;
   wxComboBox* combobox_projection;
 public:
   FramePlotter(wxFrame* parent);
   void on_gridsize(wxCommandEvent& event);
-  void on_resolution(wxCommandEvent& event);
+  void on_divisions(wxCommandEvent& event);
   void on_projection(wxCommandEvent& event);
   void on_axes(wxCommandEvent& event);
   void on_mesh(wxCommandEvent& event);
-  void on_lighting(wxCommandEvent& event);
+  // void on_lighting(wxCommandEvent& event);
 };
 
 /* ------------------------ events ------------------------ */
@@ -66,14 +66,12 @@ void FramePlotter::on_gridsize(wxCommandEvent& event) {
   long value;
   textctrl_gridsize->GetValue().ToLong(&value);
   props.grid_size = (int)value;
-  std::cout << "gridize" << std::endl;
   canvas_gl->Refresh();
 }
-void FramePlotter::on_resolution(wxCommandEvent& event) {
+void FramePlotter::on_divisions(wxCommandEvent& event) {
   double value;
   textctrl_gridsize->GetValue().ToDouble(&value);
-  props.resolution = (float)value;
-  std::cout << "resolution" << std::endl;
+  props.divisions = (float)value;
   canvas_gl->Refresh();
 }
 void FramePlotter::on_projection(wxCommandEvent& event) {
@@ -92,10 +90,10 @@ void FramePlotter::on_mesh(wxCommandEvent& event) {
   props.show_mesh = checkbox_mesh->GetValue();
   canvas_gl->Refresh();
 }
-void FramePlotter::on_lighting(wxCommandEvent& event) {
-  props.lighting = checkbox_lighting->GetValue();
-  canvas_gl->Refresh();
-}
+// void FramePlotter::on_lighting(wxCommandEvent& event) {
+//   props.lighting = checkbox_lighting->GetValue();
+//   canvas_gl->Refresh();
+// }
 
 /* ---------------- main frame constructor ---------------- */
 
@@ -140,36 +138,36 @@ FramePlotter::FramePlotter(wxFrame *parent)
   wxString combobox_projection_choices[2] = {"Perspective", "Orthographic"};
 
   textctrl_gridsize   = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
-  textctrl_resolution = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
-  checkbox_axes       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show axes:");
-  checkbox_mesh       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show mesh:");
-  checkbox_lighting   = new wxCheckBox(staticbox_properties, wxID_ANY, "Lighting:");
+  textctrl_divisions = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
+  checkbox_axes       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show axes");
+  checkbox_mesh       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show mesh");
+  // checkbox_lighting   = new wxCheckBox(staticbox_properties, wxID_ANY, "Lighting:");
   combobox_projection = new wxComboBox(staticbox_properties, wxID_ANY, "Perspective",
 				       wxDefaultPosition, wxDefaultSize, 2,
 				       combobox_projection_choices, wxCB_READONLY);
 
   textctrl_gridsize->SetValue(wxString::Format(wxT("%d"), props.grid_size));
-  textctrl_resolution->SetValue(wxString::Format(wxT("%.2f"), props.resolution));
+  textctrl_divisions->SetValue(wxString::Format(wxT("%.2f"), props.divisions));
   checkbox_axes->SetValue(props.show_axes);
   checkbox_mesh->SetValue(props.show_mesh);
-  checkbox_lighting->SetValue(props.lighting);
+  // checkbox_lighting->SetValue(props.lighting);
 
   textctrl_gridsize->Bind(wxEVT_TEXT, &FramePlotter::on_gridsize, this);
-  textctrl_resolution->Bind(wxEVT_TEXT, &FramePlotter::on_resolution, this);
+  textctrl_divisions->Bind(wxEVT_TEXT, &FramePlotter::on_divisions, this);
   checkbox_axes->Bind(wxEVT_CHECKBOX, &FramePlotter::on_axes, this);
   checkbox_mesh->Bind(wxEVT_CHECKBOX, &FramePlotter::on_mesh, this);
-  checkbox_lighting->Bind(wxEVT_CHECKBOX, &FramePlotter::on_lighting, this);
+  // checkbox_lighting->Bind(wxEVT_CHECKBOX, &FramePlotter::on_lighting, this);
   combobox_projection->Bind(wxEVT_COMBOBOX, &FramePlotter::on_projection, this);
   
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Resolution"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Divisions:"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection:"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
   staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
-  staticbox_sizer->Add(textctrl_resolution, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
+  staticbox_sizer->Add(textctrl_divisions, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
   staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
   staticbox_sizer->Add(checkbox_axes,       wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
   staticbox_sizer->Add(checkbox_mesh,       wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
-  staticbox_sizer->Add(checkbox_lighting,   wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND);
+  // staticbox_sizer->Add(checkbox_lighting,   wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND);
 
   staticbox_sizer->AddGrowableCol(0, 1);
   staticbox_sizer->AddGrowableCol(1, 1);

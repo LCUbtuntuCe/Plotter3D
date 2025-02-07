@@ -95,7 +95,6 @@ void CanvasGL::on_mouse_motion(wxMouseEvent& event) {
       ortho_size += offset;
     }
   }
-
   Refresh();
 }
 
@@ -132,36 +131,44 @@ void CanvasGL::add_surface(const std::string& function) {
   parser p;
   std::vector<float> vert;
   std::vector<unsigned int> ind;
-  // Reserve memory for the vectors to avoid multiple reallocations
   int estimatedSize = (props.grid_size + 1) * (props.grid_size + 1) * 3;
   vert.reserve(estimatedSize);
   ind.reserve(estimatedSize / 3);
   // convert function string to char*
   char* expression = new char[function.size() + 1];
   std::strcpy(expression, function.c_str());
-  // generate vertices
-  for (int i=(int)-props.grid_size/2; i<=props.grid_size/2; i++) {
-    for (int j=(int)-props.grid_size/2; j<= props.grid_size/2; j++) {
-      p.set_xy((double)i, (double)j);
-      float x = ((float)i / props.resolution - 0.5f);
-      float y = ((float)j / props.resolution - 0.5f);
+
+  float start = -props.grid_size / 2.0f;
+  int num_vertices_per_axis = props.divisions + 1;
+  double step = props.grid_size / props.divisions;
+
+  // vertices
+  for (int i = 0; i < num_vertices_per_axis; i++) {
+    for (int j = 0; j < num_vertices_per_axis; j++) {
+      float x = start + i * step;
+      float y = start + j * step;
+
+      p.set_xy(static_cast<double>(x), static_cast<double>(y));
       double z = p.eval_expr(expression);
+
       vert.push_back(x);
-      vert.push_back(z);
+      vert.push_back(static_cast<float>(z));
       vert.push_back(y);
     }
   }
-  // generate indices
-  for (int i=0; i<props.resolution; i++) {
-    for (int j=0; j<props.resolution; j++) {
-      int row1 = i * (props.resolution + 1);
-      int row2 = (i + 1) * (props.resolution + 1);
-      indices.push_back(row1 + j);
-      indices.push_back(row2 + j);
-      indices.push_back(row1 + j + 1);
-      indices.push_back(row1 + j + 1);
-      indices.push_back(row2 + j);
-      indices.push_back(row2 + j + 1);
+  // indices
+  for (int i = 0; i < props.divisions; i++) {
+    for (int j = 0; j < props.divisions; j++) {
+      int row1 = i * num_vertices_per_axis;
+      int row2 = (i + 1) * num_vertices_per_axis;
+      
+      ind.push_back(row1 + j);
+      ind.push_back(row2 + j);
+      ind.push_back(row1 + j + 1);
+
+      ind.push_back(row1 + j + 1);
+      ind.push_back(row2 + j);
+      ind.push_back(row2 + j + 1);
     }
   }
 
@@ -185,7 +192,7 @@ void CanvasGL::add_surface(const std::string& function) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   // add to vector
-  Surface3D surf = {function, true, vao, (int)vert.size()/3};
+  Surface3D surf = {function, true, vao, (int)ind.size()};
   surfaces.push_back(surf);
 }
 
@@ -268,7 +275,7 @@ void main() {
 
   glBindVertexArray(VAO_AXIS);
   glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
-  float s = props.grid_size / props.resolution - 0.5f;
+  float s = 10.0f;
   float axis[] = {
     s, 0.0f, 0.0f,
     -s, 0.0f, 0.0f,
@@ -346,8 +353,9 @@ void CanvasGL::render(wxPaintEvent& event) {
 
   for (Surface3D i : surfaces) {
     glBindVertexArray(i.vao);
-    glDrawArrays(GL_POINTS, 0, i.ind_size);
-    // glDrawElements(GL_POINTS, i.ind_size, GL_UNSIGNED_INT, 0);
+    // glDrawArrays(GL_POINTS, 0, i.ind_size);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawElements(GL_TRIANGLES, i.ind_size, GL_UNSIGNED_INT, 0);
   }
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
