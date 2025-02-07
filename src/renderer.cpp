@@ -4,6 +4,7 @@
 #include "../include/glm/gtc/type_ptr.hpp"
 #include "../include/parser.hpp"
 #include <GL/gl.h>
+#include <vector>
 #include <wx/event.h>
 
 
@@ -127,7 +128,7 @@ void CanvasGL::on_mouse_right_up(wxMouseEvent& event) {
   }
 }
 
-void CanvasGL::add_surface(const std::string& function) {
+void CanvasGL::add_surface(const std::string& function, std::vector<float>& rgb_color) {
   parser p;
   std::vector<float> vert;
   std::vector<unsigned int> ind;
@@ -154,6 +155,10 @@ void CanvasGL::add_surface(const std::string& function) {
       vert.push_back(x);
       vert.push_back(static_cast<float>(z));
       vert.push_back(y);
+
+      vert.push_back(rgb_color[0]);
+      vert.push_back(rgb_color[1]);
+      vert.push_back(rgb_color[2]);
     }
   }
   // indices
@@ -186,8 +191,10 @@ void CanvasGL::add_surface(const std::string& function) {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size() * sizeof(unsigned int), ind.data(), GL_STATIC_DRAW);
   // set location and data format 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
   // unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -207,22 +214,23 @@ void CanvasGL::init_gl(void) {
 
   /* -------------------- vertex shader -------------------- */
 
-  const char *vertex_shader_source = R"(
+  const char *shader_source_vertex = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 out vec4 input_color;
 void main() {
   gl_Position = projection * view * model * vec4(aPos, 1.0);
-  input_color = vec4(aPos, 1.0);
+  input_color = vec4(aColor, 1.0);
 }
 )";
 
-  /* ------------------- fragment shader ------------------- */
+  /* ------------------- fragment shaders ------------------- */
 
-  const char *fragment_shader_source = R"(
+  const char *shader_source_fragment_surface = R"(
 #version 330 core
 in vec4 input_color;
 out vec4 FragColor;
@@ -232,41 +240,44 @@ void main() {
 }
 )";
 
-  GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-  glCompileShader(vertex_shader);
+    const char *shader_source_fragment_mesh = R"(
+#version 330 core
+in vec4 input_color;
+out vec4 FragColor;
+void main() {
+  FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+)";
 
-  GLint success;
-  GLchar infoLog[512];
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
+  /* -------------------- shader surface -------------------- */
 
-  GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-  glCompileShader(fragment_shader);
+  GLuint shader_vertex = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(shader_vertex, 1, &shader_source_vertex, NULL);
+  glCompileShader(shader_vertex);
 
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(fragment_shader, 512, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
+  GLuint shader_fragment_surface = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(shader_fragment_surface, 1, &shader_source_fragment_surface, NULL);
+  glCompileShader(shader_fragment_surface);
 
-  shader_program = glCreateProgram();
-  glAttachShader(shader_program, vertex_shader);
-  glAttachShader(shader_program, fragment_shader);
-  glLinkProgram(shader_program);
+  shader_surface = glCreateProgram();
+  glAttachShader(shader_surface, shader_vertex);
+  glAttachShader(shader_surface, shader_fragment_surface);
+  glLinkProgram(shader_surface);
 
-  glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-  if (!success) {
-    glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-    std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-  }
+  /* --------------------- mesh shader --------------------- */
 
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
+  GLuint shader_fragment_mesh = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(shader_fragment_mesh, 1, &shader_source_fragment_mesh, NULL);
+  glCompileShader(shader_fragment_mesh);
+
+  shader_mesh = glCreateProgram();
+  glAttachShader(shader_mesh, shader_vertex);
+  glAttachShader(shader_mesh, shader_fragment_mesh);
+  glLinkProgram(shader_mesh);
+
+  glDeleteShader(shader_vertex);
+  glDeleteShader(shader_fragment_surface);
+  glDeleteShader(shader_fragment_mesh);
 
   /* ------------------------- axis ------------------------- */
 
@@ -277,17 +288,19 @@ void main() {
   glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
   float s = 10.0f;
   float axis[] = {
-    s, 0.0f, 0.0f,
-    -s, 0.0f, 0.0f,
-    0.0f, s, 0.0f,
-    0.0f, -s, 0.0f,
-    0.0f, 0.0f, s,
-    0.0f, 0.0f, -s
+    s, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+    -s, 0.0f, 0.0f, 0.2f, 0.0f, 0.0f,
+    0.0f, s, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.0f, -s, 0.0f, 0.0f, 0.0f, 0.2f,
+    0.0f, 0.0f, s, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, -s, 0.0f, 0.2f, 0.0f
   };
   glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -298,10 +311,11 @@ void main() {
   glPointSize(10);
   glEnable(GL_DEPTH_TEST);
 
-  add_surface("x * y");
-
+  std::vector<float> color1{0.3f, 0.4f, 0.2f};
+  std::vector<float> color2{0.6f, 0.2f, 0.2f};
+  add_surface("x * y", color1);
+  add_surface("x * x", color2);
 }
-
 
 void CanvasGL::render(wxPaintEvent& event) {
 
@@ -316,12 +330,10 @@ void CanvasGL::render(wxPaintEvent& event) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-  glUseProgram(shader_program);
+  /* ------------------- transformations ------------------- */
 
   glm::mat4 view = glm::mat4(1.0f);
   view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), camera_up);
-  GLuint locView = glGetUniformLocation(shader_program, "view");
-  glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view));
 
   int width, height;
   GetClientSize(&width, &height);
@@ -337,38 +349,58 @@ void CanvasGL::render(wxPaintEvent& event) {
     float top = ortho_size;
     projection = glm::ortho<float>(left, right, bottom, top, 0.1f, 5000.0f);
   }
-				    
-  GLuint locProjection = glGetUniformLocation(shader_program, "projection");
-  glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-  GLuint locModel = glGetUniformLocation(shader_program, "model");
-  glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
 
-  if (props.show_axes) {
-    glBindVertexArray(VAO_AXIS);
-    glDrawArrays(GL_LINES, 0, 6);
-  }
+  /* ----------------------- surfaces ----------------------- */
+
+  glUseProgram(shader_surface);
+  glEnable(GL_DEPTH_TEST);
+
+  GLuint locView = glGetUniformLocation(shader_surface, "view");
+  glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view));
+  GLuint locProjection = glGetUniformLocation(shader_surface, "projection");
+  glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection));
+  GLuint locModel = glGetUniformLocation(shader_surface, "model");
+  glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
 
   for (Surface3D i : surfaces) {
     glBindVertexArray(i.vao);
-    // glDrawArrays(GL_POINTS, 0, i.ind_size);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, i.ind_size, GL_UNSIGNED_INT, 0);
   }
 
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  // glBindVertexArray(VAO1);
-  // glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+  /* ------------------------- mesh ------------------------- */
 
-  
+  if (props.show_mesh) {
+    glUseProgram(shader_mesh);
+    glEnable(GL_DEPTH_TEST);
 
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  // glDrawArrays(GL_TRIANGLES, 0, 36);
+    locView = glGetUniformLocation(shader_mesh, "view");
+    glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view));
+    locProjection = glGetUniformLocation(shader_mesh, "projection");
+    glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection));
+    locModel = glGetUniformLocation(shader_mesh, "model");
+    glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
 
+    glLineWidth(4);
+    for (Surface3D i : surfaces) {
+      glBindVertexArray(i.vao);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glDrawElements(GL_TRIANGLES, i.ind_size, GL_UNSIGNED_INT, 0);
+    }
+  }
 
-  
+  /* ------------------------- axes ------------------------- */
+
+  if (props.show_axes) {
+    glUseProgram(shader_surface);
+    glDisable(GL_DEPTH_TEST);
+    glLineWidth(5);
+    glBindVertexArray(VAO_AXIS);
+    glDrawArrays(GL_LINES, 0, 6);
+  }
 
   SwapBuffers();
 

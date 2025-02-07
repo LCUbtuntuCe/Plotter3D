@@ -25,10 +25,11 @@ struct Surface3D {
 class CanvasGL : public wxGLCanvas {
   Properties& props;
   wxGLContext* m_context;
-  GLuint shader_program;
+  GLuint shader_surface;
+  GLuint shader_mesh;
   
   std::vector<Surface3D> surfaces;
-  void add_surface(const std::string& function);
+  void add_surface(const std::string& function, std::vector<float>& rgb_color);
   
   GLuint VAO_AXIS, VBO_AXIS;
   std::vector<float> vertices1;
