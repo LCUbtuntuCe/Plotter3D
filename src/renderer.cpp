@@ -384,7 +384,7 @@ void CanvasGL::render(wxPaintEvent& event) {
     locModel = glGetUniformLocation(shader_mesh, "model");
     glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
 
-    glLineWidth(4);
+    glLineWidth(2);
     for (Surface3D i : surfaces) {
       glBindVertexArray(i.vao);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

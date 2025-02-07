@@ -87,6 +87,8 @@ public:
   void on_axes(wxCommandEvent& event);
   void on_mesh(wxCommandEvent& event);
   // void on_lighting(wxCommandEvent& event);
+  void on_menu_exit(wxCommandEvent& event);
+  void on_menu_surface(wxCommandEvent& event);
 };
 
 /* ------------------------ events ------------------------ */
@@ -123,6 +125,14 @@ void FramePlotter::on_mesh(wxCommandEvent& event) {
 //   props.lighting = checkbox_lighting->GetValue();
 //   canvas_gl->Refresh();
 // }
+
+void FramePlotter::on_menu_exit(wxCommandEvent &event) {
+  Close(true);
+}
+
+void FramePlotter::on_menu_surface(wxCommandEvent& event) {
+  
+}
 
 /* ---------------- main frame constructor ---------------- */
 
@@ -213,6 +223,25 @@ FramePlotter::FramePlotter(wxFrame *parent)
 
   sizer_main->Add(canvas_gl, 10, wxEXPAND);
   sizer_main->Add(panel_right, 6, wxEXPAND);
+
+  /* ----------------------- menubar ----------------------- */
+
+  wxMenu *menu_file = new wxMenu;
+  menu_file->Append(101, "&Exit\tCtrl-Q",
+		   "Exit the program.");
+  
+  wxMenu *menu_surface = new wxMenu;
+  menu_surface->Append(102, "&Add new surface...",
+		       "");
+ 
+  wxMenuBar *menuBar = new wxMenuBar;
+  menuBar->Append(menu_file, "&File");
+  menuBar->Append(menu_surface, "&Surfaces");
+ 
+  SetMenuBar(menuBar);
+ 
+  CreateStatusBar();
+  SetStatusText("Welcome to Plotter3D");
 }
 
 /* ------------------------ wx app ------------------------ */
