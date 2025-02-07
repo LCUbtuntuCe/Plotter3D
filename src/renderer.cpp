@@ -313,8 +313,8 @@ void main() {
 
   std::vector<float> color1{0.3f, 0.4f, 0.2f};
   std::vector<float> color2{0.6f, 0.2f, 0.2f};
-  add_surface("x * y", color1);
-  add_surface("x * x", color2);
+  add_surface("cos(x) * sin(y)", color1);
+  // add_surface("x * x", color2);
 }
 
 void CanvasGL::render(wxPaintEvent& event) {

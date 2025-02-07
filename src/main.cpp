@@ -12,6 +12,34 @@
 #include <wx/textctrl.h>
 #include <wx/combobox.h>
 #include <wx/checkbox.h>
+#include <wx/clrpicker.h>
+
+/* ----------------- surface input window ----------------- */
+
+class WindowSurfaceConfiguration : public wxPanel {
+public:
+  WindowSurfaceConfiguration(wxPanel* parent);
+};
+
+WindowSurfaceConfiguration::WindowSurfaceConfiguration(wxPanel* parent)
+  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize) {
+
+  wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+  this->SetSizer(sizer);
+
+  wxCheckBox* checkbox_show = new wxCheckBox(this, wxID_ANY, "Show");
+  wxTextCtrl* textctrl_function = new wxTextCtrl(this, wxID_ANY, "");
+  wxButton* button_remove = new wxButton(this, wxID_ANY, "Remove");
+  wxColourPickerCtrl* colour_picker = new wxColourPickerCtrl(this, wxID_ANY, wxColour(255, 0, 0));
+
+  sizer->Add(checkbox_show, 0, wxALL|wxEXPAND, 5);
+  sizer->Add(new wxStaticText(this, wxID_ANY, "f(x,y) = "), 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+  sizer->Add(textctrl_function, 1, wxALL|wxEXPAND, 5);
+  sizer->Add(colour_picker, 0, wxALL|wxEXPAND, 5);
+  sizer->Add(button_remove, 0, wxALL|wxEXPAND, 5);
+
+  sizer->Layout();
+}
 
 /* -------------------- scrolled panel -------------------- */
 
@@ -22,8 +50,9 @@ public:
     
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-    for (int i=0; i<50; i++) {
-      sizer->Add(new wxButton(this, wxID_ANY, wxString::Format("Button %d", i)), 0, wxALL, 5);
+    for (int i=0; i<15; i++) {
+      sizer->Add(new WindowSurfaceConfiguration(this),
+		 0, wxALL|wxEXPAND, 5);
     }
 
     this->SetSizer(sizer);
@@ -100,7 +129,7 @@ void FramePlotter::on_mesh(wxCommandEvent& event) {
 FramePlotter::FramePlotter(wxFrame *parent)
   : wxFrame(parent, wxID_ANY, "Plotter3D") {
   
-  this->SetMinClientSize(wxSize(800, 600));
+  this->SetMinClientSize(wxSize(1200, 600));
 
   /* ---------------------- main panel ---------------------- */
 
@@ -162,9 +191,9 @@ FramePlotter::FramePlotter(wxFrame *parent)
   staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
   staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Divisions:"), wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
   staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection:"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
-  staticbox_sizer->Add(textctrl_divisions, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
-  staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALIGN_CENTER|wxALIGN_LEFT);
+  staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
+  staticbox_sizer->Add(textctrl_divisions,  wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
+  staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
   staticbox_sizer->Add(checkbox_axes,       wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
   staticbox_sizer->Add(checkbox_mesh,       wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
   // staticbox_sizer->Add(checkbox_lighting,   wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND);
@@ -176,14 +205,14 @@ FramePlotter::FramePlotter(wxFrame *parent)
 
   // add to sizer and layout
   
-  sizer_right->Add(panel_scrolled, 1, wxEXPAND|wxTOP|wxLEFT, 10);
-  sizer_right->Add(staticbox_properties, 1, wxEXPAND|wxALL, 10);
+  sizer_right->Add(panel_scrolled, 6, wxEXPAND|wxTOP|wxLEFT, 10);
+  sizer_right->Add(staticbox_properties, 4, wxEXPAND|wxALL, 10);
   sizer_right->Layout();
 
   /* -------------- add left and right to main -------------- */
 
-  sizer_main->Add(canvas_gl, 3, wxEXPAND);
-  sizer_main->Add(panel_right, 1, wxEXPAND);
+  sizer_main->Add(canvas_gl, 10, wxEXPAND);
+  sizer_main->Add(panel_right, 6, wxEXPAND);
 }
 
 /* ------------------------ wx app ------------------------ */
