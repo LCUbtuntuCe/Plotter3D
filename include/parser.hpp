@@ -10,7 +10,8 @@
 enum types {
   DELIMITER = 1,
   NUMBER,
-  VARIABLE
+  VARIABLE,
+  FUNCTION
 };
 
 
@@ -30,6 +31,7 @@ private:
   void eval_E(double& result);
   void eval_unary(double& result);
   void eval_P(double& result);
+  void eval_function(double& result, const char* token);
   void atom(double& result);
   void get_token();
   bool isdelim(char c);
