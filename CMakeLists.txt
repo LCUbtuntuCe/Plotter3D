@@ -22,7 +22,7 @@ include(${wxWidgets_USE_FILE})
 file(GLOB_RECURSE SOURCES "src/*.cpp" "libs/glad/src/glad.c")
 
 if (WIN32)
-    add_executable(Plotter3D WIN32 ${SOURCES})
+    add_executable(Plotter3D WIN32 ${SOURCES} plotter3d.manifest)
 elseif (UNIX)
     add_executable(Plotter3D ${SOURCES})
 endif()
