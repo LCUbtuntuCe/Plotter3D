@@ -1,9 +1,9 @@
-#include "../include/renderer.hpp"
-#include "../include/glm/glm.hpp"
-#include "../include/glm/gtc/matrix_transform.hpp"
-#include "../include/glm/gtc/type_ptr.hpp"
-#include "../include/parser.hpp"
-#include <GL/gl.h>
+#include <glad/glad.h>
+#include <renderer.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <parser.hpp>
 #include <vector>
 #include <wx/event.h>
 
@@ -12,7 +12,6 @@ CanvasGL::CanvasGL(wxPanel* parent, int* args, Properties& properties)
   : wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE),
     props(properties) {
   m_context = new wxGLContext(this);
-  SetCurrent(*m_context);
   Bind(wxEVT_PAINT,      &CanvasGL::render, this);
   Bind(wxEVT_SIZE,       &CanvasGL::on_size, this);
   Bind(wxEVT_MOTION,     &CanvasGL::on_mouse_motion, this);
@@ -27,8 +26,12 @@ CanvasGL::~CanvasGL() { delete m_context; }
 void CanvasGL::on_size(wxSizeEvent &event) {
     int width, height;
     GetClientSize(&width, &height);
-    glViewport(0, 0, width, height);
-    Refresh();
+    // if glad has not been initialized, glViewport will dereference
+    // null func pointer.
+    if (gl_has_been_init) {
+      glViewport(0, 0, width, height);
+      Refresh();
+    }
 }
 
 void CanvasGL::on_mouse_motion(wxMouseEvent& event) {
@@ -207,9 +210,11 @@ void CanvasGL::add_surface(const std::string& function, std::vector<float>& rgb_
 void CanvasGL::init_gl(void) {
 
   SetCurrent(*m_context);
+  if (!gladLoadGL()) {
+    std::cerr << "Failed to initialize GLAD" << std::endl;
+    return;
+  }
   
-  glewExperimental = GL_TRUE;
-  glewInit();
   SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
   /* -------------------- vertex shader -------------------- */
@@ -314,7 +319,7 @@ void main() {
   std::vector<float> color1{0.3f, 0.4f, 0.2f};
   std::vector<float> color2{0.6f, 0.2f, 0.2f};
   add_surface("cos(x) * sin(y)", color1);
-  // add_surface("x * x", color2);
+  add_surface("x * x", color2);
 }
 
 void CanvasGL::render(wxPaintEvent& event) {

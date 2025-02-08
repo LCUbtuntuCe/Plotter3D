@@ -1,6 +1,6 @@
 // modified parser from C++: Complete Reference
 
-#include "../include/parser.hpp"
+#include <parser.hpp>
 #include <cmath>
 
 parser::parser()

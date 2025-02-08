@@ -6,21 +6,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 set(OpenGL_GL_PREFERENCE GLVND)
+
+include_directories(include)
+include_directories(libs/glad/include)
 
 find_package(wxWidgets REQUIRED COMPONENTS core base gl)
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 set(wxWidgets_USE_STATIC ON)
 add_definitions(-DwxUSE_GUI=1)
 
 include(${wxWidgets_USE_FILE})
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "libs/glad/src/glad.c")
 
 add_executable(Plotter3D ${SOURCES})
 
-target_include_directories(Plotter3D PRIVATE ${GLEW_INCLUDE_DIRS})
-target_link_libraries(Plotter3D ${wxWidgets_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
+target_include_directories(Plotter3D PRIVATE)
+target_link_libraries(Plotter3D PRIVATE ${wxWidgets_LIBRARIES} ${OPENGL_LIBRARIES} glm::glm)

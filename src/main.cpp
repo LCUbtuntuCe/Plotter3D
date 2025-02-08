@@ -1,5 +1,6 @@
-#include "../include/renderer.hpp"
-#include "../include/properties.hpp"
+#include <glad/glad.h>
+#include <renderer.hpp>
+#include <properties.hpp>
 #include <wx/wx.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
