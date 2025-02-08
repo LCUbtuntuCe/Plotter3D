@@ -1,6 +1,4 @@
-#ifndef H_PROPERTIES
-#define H_PROPERTIES
-
+#pragma once
 
 struct Properties {
   int grid_size;
@@ -10,6 +8,3 @@ struct Properties {
   bool show_mesh;
   // bool lighting;
 };
-
-
-#endif

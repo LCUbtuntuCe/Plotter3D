@@ -1,18 +1,18 @@
+#pragma once
+
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #endif
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <data_properties.hpp>
 #include <wx/wx.h>
 #include <wx/glcanvas.h>
 #include <string>
 #include <map>
-
-#include <properties.hpp>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 struct Surface3D {
   std::string function;

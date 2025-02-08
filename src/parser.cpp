@@ -225,17 +225,3 @@ void parser::serror(int error) {
   };
   std::cout << e[error] << std::endl;
 }
-
-// int main() {
-//   char expstr[80];
-//   parser ob;
-//   double c = 0.0;
-//   for (;;) {
-//     std::cout << "Expression: ";
-//     std::cin.getline(expstr, 79);
-//     if (*expstr == '.')
-//       break;
-//     std::cout << "Result: " << ob.eval_expr(expstr) << std::endl;
-//   }
-//   return 0;
-// }

@@ -1,5 +1,4 @@
-#ifndef H_PARSER
-#define H_PARSER
+#pragma once
 
 #include <cstdlib>
 #include <cctype>
@@ -38,5 +37,3 @@ private:
   void serror(int error);
 };
 
-
-#endif
