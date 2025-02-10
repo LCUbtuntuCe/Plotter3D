@@ -4,6 +4,12 @@ Plotter3D is a cross-platform 3D surface plotter application built
 using wxWidgets and OpenGL. It allows the user to visualize
 mathematical functions interactively.
 
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture2.JPG"/>
+</p>
+#+END_HTML
+
 *** Features
 - Hardware accelerated 3D rendering
 - Cross-platform compatibility
@@ -15,13 +21,6 @@ mathematical functions interactively.
 - Visual Studio (Windows)
 - A C++ compiler with C++20 support
 - wxWidgets library
-- OpenGL library
-
-#+BEGIN_HTML
-<p align="center">
-<img src="images/Capture2.JPG" width="600"/>
-</p>
-#+END_HTML
 
 ** Installation
 
@@ -57,25 +56,25 @@ cmake --build .
 
 #+BEGIN_HTML
 <p align="center">
-<img src="images/Capture1.JPG" width="600"/>
+<img src="images/Capture.JPG"/>
 </p>
 #+END_HTML
 
 #+BEGIN_HTML
 <p align="center">
-<img src="images/Capture3.JPG" width="600"/>
+<img src="images/Capture3.JPG"/>
 </p>
 #+END_HTML
 
 #+BEGIN_HTML
 <p align="center">
-<img src="images/Capture4.JPG" width="600"/>
+<img src="images/Capture4.JPG"/>
 </p>
 #+END_HTML
 
 #+BEGIN_HTML
 <p align="center">
-<img src="images/Capture5.JPG" width="600"/>
+<img src="images/Capture5.png"/>
 </p>
 #+END_HTML
 
