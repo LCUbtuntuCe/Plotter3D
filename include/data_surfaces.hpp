@@ -13,7 +13,7 @@ struct SurfaceData {
   std::vector<float> rgb;
   GLuint vao;
   GLuint vbo;
+  GLuint ebo; // shared between all surfaces
   unsigned int ind_size;
-  // GLuint& ebo; // shared between all surfaces
   WindowSurfaceConfig* window_surface_config; // reference to respective window surface config
 };

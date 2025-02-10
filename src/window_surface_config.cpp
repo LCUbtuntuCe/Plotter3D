@@ -48,6 +48,8 @@ void WindowSurfaceConfig::on_checkbox(wxCommandEvent& event) {
 void WindowSurfaceConfig::on_textctrl(wxCommandEvent& event) {
   // get function string
   surfaces_data[id].function = std::string(textctrl_function->GetValue().mb_str());
+  // update ebo?
+  canvas_gl->ebo_update();
   // update only xyz values
   this->vector_update_coords();
   // update buffer
@@ -94,7 +96,7 @@ void WindowSurfaceConfig::update_buffer_size() {
   unsigned int vertices_count = (props.divisions + 1) * (props.divisions + 1) * 6;
 
   surfaces_data[id].vertices.resize(vertices_count);
-  surfaces_data[id].ind_size = vertices_count;
+  // surfaces_data[id].ind_size = vertices_count;
 
   glBindVertexArray(surfaces_data[id].vao);
   glBindBuffer(GL_ARRAY_BUFFER, surfaces_data[id].vbo);
@@ -126,7 +128,7 @@ void WindowSurfaceConfig::vector_update_coords() {
       p.set_xy(static_cast<double>(x), static_cast<double>(y));
       double z = p.eval_expr(expression);
 
-      int index = (i * num_vertices_per_axis + j) * 6;
+      int index = (i * num_vertices_per_axis + j) * 6;      
       surfaces_data[id].vertices[index] = x;
       surfaces_data[id].vertices[index + 1] = static_cast<float>(z);
       surfaces_data[id].vertices[index + 2] = y;

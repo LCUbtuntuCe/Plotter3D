@@ -20,8 +20,7 @@ class CanvasGL : public wxGLCanvas {
   wxGLContext* m_context;
   GLuint shader_surface, shader_mesh;
   GLuint VAO_AXIS, VBO_AXIS;
-  GLuint EBO;
-  bool ebo_has_been_init;
+  GLuint test;
   float fov            = 60.0f;
   float near_plane     = 0.05;
   float far_plane      = 5000;
@@ -38,13 +37,11 @@ class CanvasGL : public wxGLCanvas {
   int x_current, y_current, x_last, y_last;
   Properties& props;
   std::map<unsigned int, SurfaceData>& surfaces_data;
-  // std::vector<SurfaceRender> surfaces;
-  std::vector<float> vertices1;
-  std::vector<unsigned int> indices;
-  void add_surface(const std::string& function, std::vector<float>& rgb_color);
 public:
   CanvasGL(wxPanel* parent, int* args, Properties& properties, std::map<unsigned int, SurfaceData>& surfaces_data);
   virtual ~CanvasGL();
+  GLuint EBO;
+  unsigned int ind_size;
   void init_gl(void);
   void on_size(wxSizeEvent& event);
   void render(wxPaintEvent& event);

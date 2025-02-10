@@ -8,6 +8,8 @@
 #include <string>
 #include <map>
 
+class CanvasGL;
+
 // ------------------------------------------------------------
 // scrollable panel for WindowSurfaceConfig
 // ------------------------------------------------------------
@@ -17,6 +19,7 @@ class PanelScrolled : public wxScrolled<wxPanel> {
   Properties& props;
   std::map<unsigned int, SurfaceData>& surfaces_data;
   wxBoxSizer* sizer;
+  CanvasGL* canvas_gl = nullptr;
 public:
 
   // ------------------------------------------------------------
@@ -64,6 +67,12 @@ public:
 
     glBindVertexArray(surfaces_data[id_new].vao);
     glBindBuffer(GL_ARRAY_BUFFER, surfaces_data[id_new].vbo);
+    
+    if (canvas_gl) {
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, canvas_gl->EBO);
+      surfaces_data[id_new].ind_size = canvas_gl->ind_size;
+    }
+    
     // set location and data format
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -72,8 +81,6 @@ public:
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surface_new.ebo);
 
     window_surface_config->update_buffer_size();
     window_surface_config->vector_update_colors();
@@ -86,7 +93,15 @@ public:
 
     return window_surface_config;
   }
-  
+
+  // ------------------------------------------------------------
+  // assign canvas gl
+  // ------------------------------------------------------------
+
+  void set_canvas_gl(CanvasGL* canvas_gl) {
+    this->canvas_gl = canvas_gl;
+  }
+
 };
 
 class FramePlotter : public wxFrame {

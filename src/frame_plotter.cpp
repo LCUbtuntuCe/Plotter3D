@@ -22,8 +22,8 @@ FramePlotter::FramePlotter(wxFrame* parent)
   /* ---- initialize properties struct ---- */
 
    props = {
-     .grid_size = 10, // 50
-     .divisions = 3, // 400
+     .grid_size = 20,
+     .divisions = 20,
      .perspective = true,
      .show_axes = true,
      .show_mesh = true,
@@ -66,6 +66,7 @@ FramePlotter::FramePlotter(wxFrame* parent)
   /* ----------- scrolled area ----------- */
 
   panel_scrolled = new PanelScrolled(panel_right, props, surfaces_data);
+  panel_scrolled->set_canvas_gl(canvas_gl);
 
   /* -------- staticbox properties -------- */
   
@@ -167,6 +168,8 @@ void FramePlotter::on_gridsize(wxCommandEvent& event) {
   textctrl_gridsize->GetValue().ToLong(&value);
   if (value <= 0) return;
   props.grid_size = (int)value;
+  // update ebo
+  canvas_gl->ebo_update();
   for (const auto& pair : surfaces_data) {
     // realloc buffer, and update all
     pair.second.window_surface_config->update_buffer_size();
@@ -182,6 +185,8 @@ void FramePlotter::on_divisions(wxCommandEvent& event) {
   textctrl_divisions->GetValue().ToDouble(&value);
   if (value <= 1) return;
   props.divisions = (float)value;
+  // update ebo
+  canvas_gl->ebo_update();
   for (const auto& pair : surfaces_data) {
     // realloc buffer, and update all
     pair.second.window_surface_config->update_buffer_size();
