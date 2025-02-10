@@ -223,5 +223,5 @@ void parser::serror(int error) {
     "NoExpression",
     "InvalidVariable"
   };
-  std::cout << e[error] << std::endl;
+  // std::cout << e[error] << std::endl;
 }

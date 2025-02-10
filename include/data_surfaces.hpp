@@ -1,11 +1,16 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <window_surface_config.hpp>
+#include <string>
+#include <vector>
 
-struct Surfaces {
-  int id;
-  //WindowSurfaceConfig* surface_config_window;
-  GLuint VAO;            // to draw or update data
-  unsigned int ind_num;  // number of indices in EBO
+struct SurfaceData {
+  std::string function;
+  bool show;
+  std::vector<float> vertices;
+  std::vector<float> rgb;
+  GLuint vao;
+  GLuint vbo;
+  unsigned int ind_size;
+  // GLuint& ebo; // shared between all surfaces
 };
