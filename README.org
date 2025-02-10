@@ -1,0 +1,102 @@
+* Plotter3D
+
+Plotter3D is a cross-platform 3D surface plotter application built
+using wxWidgets and OpenGL. It allows the user to visualize
+mathematical functions interactively.
+
+*** Features
+- Hardware accelerated 3D rendering
+- Cross-platform compatibility
+- Interactive controls
+- Parser for mathematical functions
+
+*** Requirements
+- CMake 3.12 or higher
+- Visual Studio (Windows)
+- A C++ compiler with C++20 support
+- wxWidgets library
+- OpenGL library
+
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture2.JPG" width="600"/>
+</p>
+#+END_HTML
+
+** Installation
+
+*** Windows (Visual Studio)
+
+Download and build wxWidgets from [[https://www.wxwidgets.org/downloads/]]
+
+#+BEGIN_SRC
+git clone https://github.com/cenfraGit/Plotter3D.git
+#+END_SRC
+
+Open the diretory in Visual Studio and build.
+
+*** Linux
+
+Install wxWidgets:
+- On Debian-based systems:
+#+BEGIN_SRC
+sudo apt-get install libwxgtk3.0-dev
+#+END_SRC
+
+#+BEGIN_SRC
+git clone https://github.com/cenfraGit/Plotter3D.git
+cd Plotter3D
+mkdir build
+cd build
+cmake ..
+cmake --build .
+./Plotter3D
+#+END_SRC
+
+** Screenshots
+
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture1.JPG" width="600"/>
+</p>
+#+END_HTML
+
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture3.JPG" width="600"/>
+</p>
+#+END_HTML
+
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture4.JPG" width="600"/>
+</p>
+#+END_HTML
+
+#+BEGIN_HTML
+<p align="center">
+<img src="images/Capture5.JPG" width="600"/>
+</p>
+#+END_HTML
+
+** Usage
+
+- To configure a new surface, go to menubar -> Surfaces -> Add new
+  surface...
+- You can modify the Divisions parameter in the Properties section to
+  manualy adjust the resolution of the surface.
+- Use your main mouse button to rotate the scene.
+- Use your secondary mouse button to zoom in/zoom out.
+
+*** Available functions
+- sin
+- cos
+- arcsin
+- arccos
+- arctan
+- rad
+- deg
+- sqrt
+- exp
+- ln
+- log10
