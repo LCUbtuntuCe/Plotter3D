@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+class WindowSurfaceConfig;
+
 struct SurfaceData {
   std::string function;
   bool show;
@@ -13,4 +15,5 @@ struct SurfaceData {
   GLuint vbo;
   unsigned int ind_size;
   // GLuint& ebo; // shared between all surfaces
+  WindowSurfaceConfig* window_surface_config; // reference to respective window surface config
 };

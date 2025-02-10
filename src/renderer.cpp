@@ -372,9 +372,12 @@ void CanvasGL::on_mouse_motion(wxMouseEvent& event) {
 
       // translate camera position
       camera_pos += translation_vector;
+      
     } else {
+      
       float offset = -(y_current - y_last) * scale_translation;
       ortho_size += offset;
+      
     }
   }
   Refresh();

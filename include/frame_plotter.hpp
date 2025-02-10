@@ -53,7 +53,8 @@ public:
       .function = "",
       .show = true,
       .rgb = {1.0f, 0.0f, 0.0f},
-      .ind_size = 0
+      .ind_size = 0,
+      .window_surface_config = window_surface_config
     };
 
     surfaces_data[id_new] = surface_new;

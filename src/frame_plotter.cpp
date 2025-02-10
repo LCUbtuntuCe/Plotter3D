@@ -165,14 +165,30 @@ FramePlotter::FramePlotter(wxFrame* parent)
 void FramePlotter::on_gridsize(wxCommandEvent& event) {
   long value;
   textctrl_gridsize->GetValue().ToLong(&value);
+  if (value <= 0) return;
   props.grid_size = (int)value;
+  for (const auto& pair : surfaces_data) {
+    // realloc buffer, and update all
+    pair.second.window_surface_config->update_buffer_size();
+    pair.second.window_surface_config->vector_update_coords();
+    pair.second.window_surface_config->vector_update_colors();
+    pair.second.window_surface_config->vector_send_to_buffer();
+  }
   canvas_gl->Refresh();
 }
 
 void FramePlotter::on_divisions(wxCommandEvent& event) {
   double value;
-  textctrl_gridsize->GetValue().ToDouble(&value);
+  textctrl_divisions->GetValue().ToDouble(&value);
+  if (value <= 1) return;
   props.divisions = (float)value;
+  for (const auto& pair : surfaces_data) {
+    // realloc buffer, and update all
+    pair.second.window_surface_config->update_buffer_size();
+    pair.second.window_surface_config->vector_update_coords();
+    pair.second.window_surface_config->vector_update_colors();
+    pair.second.window_surface_config->vector_send_to_buffer();
+  }
   canvas_gl->Refresh();
 }
 
