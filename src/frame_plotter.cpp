@@ -71,17 +71,21 @@ FramePlotter::FramePlotter(wxFrame* parent)
   /* -------- staticbox properties -------- */
   
   wxStaticBox* staticbox_properties = new wxStaticBox(panel_right, wxID_ANY, "Properties");
-  wxGridBagSizer* staticbox_sizer = new wxGridBagSizer();
+  wxBoxSizer* staticbox_sizer = new wxBoxSizer(wxVERTICAL);
   staticbox_properties->SetSizer(staticbox_sizer);
+
+  wxPanel* panel_staticbox_properties = new wxPanel(staticbox_properties);
+  wxGridBagSizer* panel_staticbox_sizer = new wxGridBagSizer();
+  panel_staticbox_properties->SetSizer(panel_staticbox_sizer);
 
   wxString combobox_projection_choices[2] = {"Perspective", "Orthographic"};
 
-  textctrl_gridsize   = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
-  textctrl_divisions  = new wxTextCtrl(staticbox_properties, wxID_ANY, "");
-  checkbox_axes       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show axes");
-  checkbox_mesh       = new wxCheckBox(staticbox_properties, wxID_ANY, "Show mesh");
-  // checkbox_lighting   = new wxCheckBox(staticbox_properties, wxID_ANY, "Lighting:");
-  combobox_projection = new wxComboBox(staticbox_properties, wxID_ANY, "Perspective",
+  textctrl_gridsize   = new wxTextCtrl(panel_staticbox_properties, wxID_ANY, "");
+  textctrl_divisions  = new wxTextCtrl(panel_staticbox_properties, wxID_ANY, "");
+  checkbox_axes       = new wxCheckBox(panel_staticbox_properties, wxID_ANY, "Show axes");
+  checkbox_mesh       = new wxCheckBox(panel_staticbox_properties, wxID_ANY, "Show mesh");
+  // checkbox_lighting   = new wxCheckBox(panel_staticbox_properties, wxID_ANY, "Lighting:");
+  combobox_projection = new wxComboBox(panel_staticbox_properties, wxID_ANY, "Perspective",
 				       wxDefaultPosition, wxDefaultSize, 2,
 				       combobox_projection_choices, wxCB_READONLY);
 
@@ -104,19 +108,22 @@ FramePlotter::FramePlotter(wxFrame* parent)
 
   /* ------------ add to sizer ------------ */
   
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Divisions:"),  wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(new wxStaticText(staticbox_properties, wxID_ANY, "Projection:"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
-  staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
-  staticbox_sizer->Add(textctrl_divisions,  wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
-  staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
-  staticbox_sizer->Add(checkbox_axes,       wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
-  staticbox_sizer->Add(checkbox_mesh,       wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
-  // staticbox_sizer->Add(checkbox_lighting,   wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND);
+  panel_staticbox_sizer->Add(new wxStaticText(panel_staticbox_properties, wxID_ANY, "Grid Size:"),  wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  panel_staticbox_sizer->Add(new wxStaticText(panel_staticbox_properties, wxID_ANY, "Divisions:"),  wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  panel_staticbox_sizer->Add(new wxStaticText(panel_staticbox_properties, wxID_ANY, "Projection:"), wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL);
+  panel_staticbox_sizer->Add(textctrl_gridsize,   wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
+  panel_staticbox_sizer->Add(textctrl_divisions,  wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
+  panel_staticbox_sizer->Add(combobox_projection, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxALIGN_LEFT, 5);
+  panel_staticbox_sizer->Add(checkbox_axes,       wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
+  panel_staticbox_sizer->Add(checkbox_mesh,       wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
+  // panel_staticbox_sizer->Add(checkbox_lighting,   wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND);
 
-  staticbox_sizer->AddGrowableCol(0, 1);
-  staticbox_sizer->AddGrowableCol(1, 1);
+  panel_staticbox_sizer->AddGrowableCol(0, 1);
+  panel_staticbox_sizer->AddGrowableCol(1, 1);
 
+  staticbox_sizer->Add(panel_staticbox_properties, 1, wxALL|wxEXPAND, 33);
+
+  panel_staticbox_sizer->Layout();
   staticbox_sizer->Layout();
 
   // add to sizer and layout
