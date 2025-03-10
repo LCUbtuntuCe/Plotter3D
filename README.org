@@ -32,7 +32,7 @@ Download and build wxWidgets from [[https://www.wxwidgets.org/downloads/]]
 git clone https://github.com/cenfraGit/Plotter3D.git
 #+END_SRC
 
-Open the diretory in Visual Studio and build.
+Open the directory in Visual Studio and build.
 
 *** Linux
 
