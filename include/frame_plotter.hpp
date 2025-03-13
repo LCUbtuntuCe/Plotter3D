@@ -12,8 +12,7 @@
 // 用于 `WindowSurfaceConfig` 的可滚动面板
 // ------------------------------------------------------------
 
-
-
+// 可滚动窗口类wxScrolledWindow继承自wxPanel
 class PanelScrolled : public wxScrolledWindow {
   unsigned int id_count = 0;
   Properties& props;
@@ -104,6 +103,7 @@ public:
 
 };
 
+// 
 class FramePlotter : public wxFrame {
   Properties props;
   std::map<unsigned int, SurfaceData> surfaces_data;
