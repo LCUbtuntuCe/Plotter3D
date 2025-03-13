@@ -8,13 +8,13 @@
 #include <string>
 #include <map>
 
-class CanvasGL;
-
 // ------------------------------------------------------------
-// scrollable panel for WindowSurfaceConfig
+// 用于 `WindowSurfaceConfig` 的可滚动面板
 // ------------------------------------------------------------
 
-class PanelScrolled : public wxScrolled<wxPanel> {
+
+
+class PanelScrolled : public wxScrolledWindow {
   unsigned int id_count = 0;
   Properties& props;
   std::map<unsigned int, SurfaceData>& surfaces_data;
@@ -27,7 +27,7 @@ public:
   // ------------------------------------------------------------
   
   PanelScrolled(wxWindow* parent, Properties& props, std::map<unsigned int, SurfaceData>& surfaces_data)
-    : wxScrolled(parent, wxID_ANY),
+    : wxScrolledWindow(parent, wxID_ANY),
       props(props),
       surfaces_data(surfaces_data) {
     
