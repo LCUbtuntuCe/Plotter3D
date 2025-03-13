@@ -103,7 +103,8 @@ public:
 
 };
 
-// 
+// wxFrame是一个框架类，表示一个窗口其大小和位置可以由用户更改
+// 它通常具有粗边框和标题栏，并且可以选择包含菜单栏、工具栏和状态栏。一个框架可以容纳任何不是框架或对话框的窗口。
 class FramePlotter : public wxFrame {
   Properties props;
   std::map<unsigned int, SurfaceData> surfaces_data;
