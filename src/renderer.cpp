@@ -61,7 +61,7 @@ CanvasGL::CanvasGL(wxPanel* parent, int* args, Properties& properties, std::map<
 // 析构函数: 销毁OpenGL上下文
 CanvasGL::~CanvasGL() { delete m_context; }
 
-// 
+// 初始化OpenGL
 void CanvasGL::init_gl(void) 
 {
 	// 由OpenGL渲染上下文m_context表示的状态成为当前状态，m_context将被用于后续所有的OpenGL调用
@@ -80,128 +80,166 @@ void CanvasGL::init_gl(void)
     	*/
 	SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
-  // ------------------------------------------------------------
-  // vertex shader
-  // ------------------------------------------------------------
+	// ------------------------------------------------------------
+	// vertex shader
+  	// ------------------------------------------------------------
+	const char *shader_source_vertex = R"(
+		#version 330 core
+		layout (location = 0) in vec3 aPos;
+		layout (location = 1) in vec3 aColor;
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+		out vec4 input_color;
+		void main() {
+			gl_Position = projection * view * model * vec4(aPos, 1.0);
+			input_color = vec4(aColor, 1.0);
+		}
+	)";
 
-  const char *shader_source_vertex = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-out vec4 input_color;
-void main() {
-  gl_Position = projection * view * model * vec4(aPos, 1.0);
-  input_color = vec4(aColor, 1.0);
-}
-)";
+	// ------------------------------------------------------------
+	// fragment shaders
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // fragment shaders
-  // ------------------------------------------------------------
+	const char *shader_source_fragment_surface = R"(
+		#version 330 core
+		in vec4 input_color;
+		out vec4 FragColor;
+		void main() {
+			// FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			FragColor = input_color;
+		}
+	)";
 
-  const char *shader_source_fragment_surface = R"(
-#version 330 core
-in vec4 input_color;
-out vec4 FragColor;
-void main() {
-  // FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-  FragColor = input_color;
-}
-)";
+	const char *shader_source_fragment_mesh = R"(
+		#version 330 core
+		in vec4 input_color;
+		out vec4 FragColor;
+		void main() {
+			FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+	)";
 
-    const char *shader_source_fragment_mesh = R"(
-#version 330 core
-in vec4 input_color;
-out vec4 FragColor;
-void main() {
-  FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-}
-)";
+	// ------------------------------------------------------------
+	// surface shader
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // surface shader
-  // ------------------------------------------------------------
+	// glCreateShader用于创建一个新的着色器对象，失败了就返回0
+	// GL_VERTEX_SHADER类型的着色器是一种旨在在可编程顶点处理器上运行的着色器。
+	GLuint shader_vertex = glCreateShader(GL_VERTEX_SHADER);
+	// glShaderSource函数将着色器对象中的源代码设置为由string参数指定的字符串数组中的源代码。之前存储在着色器对象中的任何源代码会被完全替换。
+	// 数组中的字符串数量由count参数指定, 这里就一个字符串。
+	glShaderSource(shader_vertex, 1, &shader_source_vertex, NULL);
+	// 指出要被编译的着色器对象
+	glCompileShader(shader_vertex);
 
-  GLuint shader_vertex = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(shader_vertex, 1, &shader_source_vertex, NULL);
-  glCompileShader(shader_vertex);
+	// 类型为GL_FRAGMENT_SHADER的着色器是一种专为在可编程片段处理器上运行而设计的着色器。
+	GLuint shader_fragment_surface = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(shader_fragment_surface, 1, &shader_source_fragment_surface, NULL);
+	// 指出要被编译的着色器对象
+	glCompileShader(shader_fragment_surface);
 
-  GLuint shader_fragment_surface = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(shader_fragment_surface, 1, &shader_source_fragment_surface, NULL);
-  glCompileShader(shader_fragment_surface);
+	// glCreateProgram函数创建一个空的程序对象，并返回一个非零值作为其引用标识符。程序对象是一个可以附加着色器对象的容器。
+	shader_surface = glCreateProgram();
+	// 附加着色器对象
+	glAttachShader(shader_surface, shader_vertex);
+	// 附加着色器对象
+	glAttachShader(shader_surface, shader_fragment_surface);
+	// 指明要被链接的程序对象句柄
+	glLinkProgram(shader_surface);
 
-  shader_surface = glCreateProgram();
-  glAttachShader(shader_surface, shader_vertex);
-  glAttachShader(shader_surface, shader_fragment_surface);
-  glLinkProgram(shader_surface);
+	// ------------------------------------------------------------
+	// mesh shader
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // mesh shader
-  // ------------------------------------------------------------
+	// 类型为GL_FRAGMENT_SHADER的着色器是一种专为在可编程片段处理器上运行而设计的着色器
+	GLuint shader_fragment_mesh = glCreateShader(GL_FRAGMENT_SHADER);
+	// glShaderSource函数将着色器对象中的源代码设置为由string参数指定的字符串数组中的源代码。之前存储在着色器对象中的任何源代码会被完全替换。
+	// 数组中的字符串数量由count参数指定, 这里就一个字符串。
+	glShaderSource(shader_fragment_mesh, 1, &shader_source_fragment_mesh, NULL);
+	// 指出要被编译的着色器对象
+	glCompileShader(shader_fragment_mesh);
 
-  GLuint shader_fragment_mesh = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(shader_fragment_mesh, 1, &shader_source_fragment_mesh, NULL);
-  glCompileShader(shader_fragment_mesh);
+	// glCreateProgram函数创建一个空的程序对象，并返回一个非零值作为其引用标识符。程序对象是一个可以附加着色器对象的容器。
+	shader_mesh = glCreateProgram();
+	// 附加着色器对象
+	glAttachShader(shader_mesh, shader_vertex);
+	// 附加着色器对象
+	glAttachShader(shader_mesh, shader_fragment_mesh);
+	// 指明要被链接的程序对象句柄
+	glLinkProgram(shader_mesh);
 
-  shader_mesh = glCreateProgram();
-  glAttachShader(shader_mesh, shader_vertex);
-  glAttachShader(shader_mesh, shader_fragment_mesh);
-  glLinkProgram(shader_mesh);
+	// 着色器对象已附加到某个程序对象,则仅会将其标记为待删除，但不会立即删除。
+	// 只有当该着色器对象从所有程序对象中分离，且在所有渲染上下文中均未被使用时，才会真正被删除。
+	glDeleteShader(shader_vertex);
+	glDeleteShader(shader_fragment_surface);
+	glDeleteShader(shader_fragment_mesh);
 
-  glDeleteShader(shader_vertex);
-  glDeleteShader(shader_fragment_surface);
-  glDeleteShader(shader_fragment_mesh);
+	// ------------------------------------------------------------
+	// create axis
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // create axis
-  // ------------------------------------------------------------
+	// glGenVertexArrays返回一个顶点数组对象的名称，并存在了VAO_AXIS中
+	glGenVertexArrays(1, &VAO_AXIS);
+	// glGenBuffers函数会生成1个缓冲区对象标识符，并将这些标识符存储在VBO_AXIS中。
+	glGenBuffers(1, &VBO_AXIS);
 
-  glGenVertexArrays(1, &VAO_AXIS);
-  glGenBuffers(1, &VBO_AXIS);
+	// glBindVertexArray函数用于绑定指定名称的顶点数组对象（VAO）
+	glBindVertexArray(VAO_AXIS);
+	// glBindBuffer用于绑定一个已经命名的缓存区对象。GL_ARRAY_BUFFER代表顶点属性
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
+	float s = 10.0f;
+	float axis[] = {
+		s, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-s, 0.0f, 0.0f, 0.2f, 0.0f, 0.0f,
+		0.0f, s, 0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, -s, 0.0f, 0.0f, 0.0f, 0.2f,
+		0.0f, 0.0f, s, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, -s, 0.0f, 0.2f, 0.0f
+	};
+	
+	// glBufferData是OpenGL中用于为缓冲区对象（Buffer Object）分配数据存储空间的函数
+	// GL_ARRAY_BUFFER表示当前绑定的缓冲区对象所关联的目标类型为顶点属性（位置、颜色、纹理坐标）
+	// 数组axis包含了用于指定要复制到缓冲区对象数据存储区的初始化数据
+	/* GL_STATIC_DRAW要分开看: STATIC表示数据会被修改一次，利用许多次；
+ 		DRAW表明数据内容被应用程序所修改，并且数据内容作为OpenGL绘图和图像规范命令的来源
+ 	*/
+	glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
 
-  glBindVertexArray(VAO_AXIS);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_AXIS);
-  float s = 10.0f;
-  float axis[] = {
-    s, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-    -s, 0.0f, 0.0f, 0.2f, 0.0f, 0.0f,
-    0.0f, s, 0.0f, 0.0f, 0.0f, 1.0f,
-    0.0f, -s, 0.0f, 0.0f, 0.0f, 0.2f,
-    0.0f, 0.0f, s, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, -s, 0.0f, 0.2f, 0.0f
-  };
-  glBufferData(GL_ARRAY_BUFFER, sizeof(axis), axis, GL_STATIC_DRAW);
+	// 定义一个通用顶点属性数据的数组
+	/* 0表示需修改的通用顶点属性的索引
+ 	   3表示每个通用顶点属性的分量数目。
+     	   GL_FLOAT表示数组中每个分量的数据类型为单精度浮点型
+	   GL_FALSE表示当访问定点数据值时直接按原定点值转换
+           指定连续通用顶点属性之间的字节偏移量（步幅）为6 * sizeof(float)
+	*/
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+	// ------------------------------------------------------------
+	// states
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // states
-  // ------------------------------------------------------------
+	glLineWidth(2);
+	glPointSize(10);
+	glEnable(GL_DEPTH_TEST);
 
-  glLineWidth(2);
-  glPointSize(10);
-  glEnable(GL_DEPTH_TEST);
+	// ------------------------------------------------------------
+	// ebo
+	// ------------------------------------------------------------
 
-  // ------------------------------------------------------------
-  // ebo
-  // ------------------------------------------------------------
+	// GLuint e;
+	glGenBuffers(1,&EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  // GLuint e;
-  glGenBuffers(1, &EBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	ebo_update();
 
-  ebo_update();
-  
 }
 
 // ------------------------------------------------------------
