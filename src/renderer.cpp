@@ -8,39 +8,77 @@
 #include <wx/event.h>
 #include <window_surface_config.hpp>
 
-// ------------------------------------------------------------
-// constructor & destructor
-// ------------------------------------------------------------
-
+// 构造函数
+/* 这里所用的wxGLCanvas类的构造函数应该是:
+	wxGLCanvas::wxGLCanvas(	
+		wxWindow* parent,
+		wxWindowID id = wxID_ANY,
+		const int* attribList = NULL,
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = 0,
+		const wxString& name = "GLCanvas",
+		const wxPalette& palette = wxNullPalette 
+	)
+ 此构造函数目前仅出于兼容性原因而保留。
+*/
 CanvasGL::CanvasGL(wxPanel* parent, int* args, Properties& properties, std::map<unsigned int, SurfaceData>& surfaces_data)
   : wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE),
     props(properties),
-    surfaces_data(surfaces_data) {
-  m_context = new wxGLContext(this);
-  Bind(wxEVT_PAINT,      &CanvasGL::render, this);
-  Bind(wxEVT_SIZE,       &CanvasGL::on_size, this);
-  Bind(wxEVT_MOTION,     &CanvasGL::on_mouse_motion, this);
-  Bind(wxEVT_LEFT_DOWN,  &CanvasGL::on_mouse_left_down, this);
-  Bind(wxEVT_LEFT_UP,    &CanvasGL::on_mouse_left_up, this);
-  Bind(wxEVT_RIGHT_DOWN, &CanvasGL::on_mouse_right_down, this);
-  Bind(wxEVT_RIGHT_UP,   &CanvasGL::on_mouse_right_up, this);
+    surfaces_data(surfaces_data)
+{
+	/* 
+	wxGLContext的实例既承载了OpenGL状态机的实时运行状态，
+	也维系着OpenGL图形接口与操作系统底层（如窗口系统、硬件驱动）之间的核心交互通道。
+	*/
+	m_context = new wxGLContext(this);
+
+	// Bind函数用于将给定的函数、方法和事件绑定:
+
+	// wxEVT_PAINT是一个事件宏，用于标识绘图事件
+	// 绘图事件包括: 窗口首次创建时; 窗口被最小化然后恢复; 窗口被覆盖后再次显示; 代码主动调用Refresh()或Update()
+	Bind(wxEVT_PAINT,      &CanvasGL::render, this);
+
+	// 当窗口的尺寸发生变化（例如用户调整窗口大小、最大化、最小化等）时，就会触发wxEVT_SIZE事件。
+	Bind(wxEVT_SIZE,       &CanvasGL::on_size, this);
+
+	// 当鼠标在窗口内部移动时，就会触发wxEVT_MOTION事件。
+	Bind(wxEVT_MOTION,     &CanvasGL::on_mouse_motion, this);
+
+	// 按下鼠标左键
+	Bind(wxEVT_LEFT_DOWN,  &CanvasGL::on_mouse_left_down, this);
+
+	// 松开鼠标左键
+	Bind(wxEVT_LEFT_UP,    &CanvasGL::on_mouse_left_up, this);
+
+	// 按下鼠标右键
+	Bind(wxEVT_RIGHT_DOWN, &CanvasGL::on_mouse_right_down, this);
+
+	// 松开鼠标右键
+	Bind(wxEVT_RIGHT_UP,   &CanvasGL::on_mouse_right_up, this);
 }
 
+// 析构函数: 销毁OpenGL上下文
 CanvasGL::~CanvasGL() { delete m_context; }
 
-// ------------------------------------------------------------
-// initialize opengl 
-// ------------------------------------------------------------
+// 
+void CanvasGL::init_gl(void) 
+{
+	// 由OpenGL渲染上下文m_context表示的状态成为当前状态，m_context将被用于后续所有的OpenGL调用
+	SetCurrent(*m_context);
 
-void CanvasGL::init_gl(void) {
+	// 该函数属于GLAD库，在创建了OpenGL上下文之后动态加载当前上下文中可用的OpenGL函数地址
+	if(!gladLoadGL())
+	{
+		std::cerr << "Failed to initialize GLAD" << std::endl;
+		return;
+	}
 
-  SetCurrent(*m_context);
-  if (!gladLoadGL()) {
-    std::cerr << "Failed to initialize GLAD" << std::endl;
-    return;
-  }
-  
-  SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+	// 设置窗口的背景风格，
+	/* wxBG_STYLE_CUSTOM表示控件的背景绘制由控件自身负责，而不是由系统自动擦除或绘制。
+	   这通常用于需要完全自定义绘制效果的控件，开发者需要在相应的绘制事件(如EVT_PAINT)中处理背景的绘制工作
+    	*/
+	SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
   // ------------------------------------------------------------
   // vertex shader
